@@ -1,0 +1,35 @@
+{
+  "env": {
+    "browser": true,
+    "node": true
+  },
+  "globals": {
+    "chrome": true
+  },
+  "rules": {
+    "no-plusplus": "off",
+    "no-console": "off",
+    "no-class-assign": "off",
+    "import/no-named-as-default": 0,
+    "react/prop-types": 0,
+    "class-methods-use-this": [
+      2,
+      {
+        "exceptMethods": [
+          "fetch",
+          "render",
+          "getInitialState",
+          "getDefaultProps",
+          "getChildContext",
+          "componentWillMount",
+          "componentDidMount",
+          "componentWillReceiveProps",
+          "shouldComponentUpdate",
+          "componentWillUpdate",
+          "componentDidUpdate",
+          "componentWillUnmount"
+        ]
+      }
+    ]
+  }
+}
