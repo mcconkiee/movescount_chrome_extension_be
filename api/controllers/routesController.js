@@ -6,21 +6,22 @@ const geolib = require("geolib");
 const http = require("http");
 const request = require("request");
 const uuidv4 = require("uuid/v4");
-const download = function download(id, cookie) {
-  console.log("download ", id);
+
+const download = function download(options, done) {
+  console.log("download ", options);
 
   return new Promise((resolve, reject) => {
-    var options = {
+    var httpOptions = {
       method: "GET",
       hostname: "www.movescount.com",
       port: null,
-      path: `/Move/Route/${id}`,
+      path: options.url,
       headers: {
-        cookie: cookie
+        cookie: options.cookie
       }
     };
 
-    var req = http.request(options, function(_res) {
+    var req = http.request(httpOptions, function(_res) {
       var chunks = [];
 
       _res.on("data", function(chunk) {
@@ -32,8 +33,7 @@ const download = function download(id, cookie) {
 
       _res.on("end", function() {
         var body = Buffer.concat(chunks);
-        const json = JSON.parse(body.toString());
-        resolve(json);
+        resolve(body);
       });
     });
 
@@ -43,13 +43,13 @@ const download = function download(id, cookie) {
 const removeFiles = function removeFiles(files, done) {
   async.each(
     files,
-    (f,_done) => {
+    (f, _done) => {
       fs.unlinkSync(f);
       _done();
     },
     e => {
       if (e) throw e;
-      done()
+      done();
     }
   );
 };
@@ -66,7 +66,7 @@ const doArchive = function doArchive(data, options, done) {
     console.log(
       "archiver has been finalized and the output file descriptor has closed."
     );
-    removeFiles(data,done);
+    removeFiles(data, done);
   });
   // This event is fired when the data source is drained no matter what was the data source.
   // It is not part of this library but rather from the NodeJS Stream API.
@@ -89,61 +89,42 @@ const doArchive = function doArchive(data, options, done) {
 
 exports.download_all_routes = function(req, res) {
   const allIds = req.body.data;
-  const data = [];
-  async.eachSeries(
+  const rootDir = process.cwd();
+  const uuid = uuidv4();
+  const dir = `${rootDir}/tmp/${uuid}`;
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir);
+  }
+  const archivableFiles = []; //hold the paths here
+  async.each(
     allIds,
-    function(feedUri, done) {
-      // call your async function
-      download(feedUri, req.body.cookie)
-        .then(response => {
-          // your operation here;
-          data.push(response);
+    (routeId, done) => {
+      const url = `/Move/ExportRoute/${routeId}?format=gpx`;
+      const options = { url: url, cookie: req.body.cookie, dir: dir };
+      download(options).then(response => {
+        // data.push(response);
+        const fileName = `${routeId}.gpx`;
+        const filePath = dir + `/${fileName}`;
+
+        //create files
+        createFile(filePath, response, err => {
+          if (err) throw err;
+          archivableFiles.push(filePath);
           done();
-        })
-        .catch(e => {
-          console.log(e);
-          done(e);
         });
+      });
     },
-    function(err) {
-      // errors generated in the loop above will be accessible here
+    err => {      
       if (err) throw err;
-
-      const rootDir = process.cwd();
-      const uuid = uuidv4();
-      const dir = `${rootDir}/tmp/${uuid}`;
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir);
-      }
-
-      const archivableFiles = [];
-      async.each(
-        data,
-        (d, done) => {
-          const gpxContents = geolib.gpxForJson(d, {
-            name: d.routeName
-          });
-          const fileName = `${d.id}.gpx`;
-          const filePath = dir + `/${fileName}`;
-
-          //create files
-          createFile(filePath, gpxContents, err => {
-            if (err) throw err;
-            archivableFiles.push(filePath);
-            done();
-          });
-        },
-        e => {
-          //zip and hold it in tmp
-          //TODO: clean up archivableFiles
-          doArchive(archivableFiles, { dir: dir, uuid: uuid }, err => {
-            console.log("all files but zip are gone");
-            res.json({ dir: dir });
-          });
-        }
-      );
+      //zip and hold it in tmp
+      //TODO: clean up archivableFiles
+      doArchive(archivableFiles, { dir: dir, uuid: uuid }, err => {
+        console.log("all files but zip are gone");
+        res.json({ dir: dir });
+      });
     }
   );
+  
 };
 
 exports.download_zip = function(req, res) {
