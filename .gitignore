@@ -2,6 +2,7 @@
 
 # dependencies
 /geolib/node_modules
+/geolib/package-lock.json
 /node_modules
 
 # testing
