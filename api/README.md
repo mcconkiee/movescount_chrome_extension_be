@@ -1,4 +1,8 @@
 ```
+tab> cd geolib
+tab> npm install
+tab> cd ..
+tab> npm install
 tab> npm start
 
 tab2> sudo mongod
