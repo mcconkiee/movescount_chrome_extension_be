@@ -20,6 +20,7 @@
     "ff": "^0.2.2",
     "geolib": "file:./geolib",
     "http": "0.0.0",
+    "mailgun-js": "^0.14.0",
     "mongoose": "^4.13.7",
     "request": "^2.83.0",
     "s3": "^4.4.0",
