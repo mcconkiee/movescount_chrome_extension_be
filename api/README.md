@@ -10,6 +10,27 @@ tab2> sudo mongod
 
 create zip:
 
+
+## KU - (background jobs)
+
+[https://blog.jscrambler.com/queue-jobs-kue/](https://blog.jscrambler.com/queue-jobs-kue/)
+
+```
+cd /Users/ericmcconkie/Documents/personal/apps/movescount-chrome/backend/node_modules/kue/bin 
+poynts-mbp:bin ericmcconkie$ pwd
+/Users/ericmcconkie/Documents/personal/apps/movescount-chrome/backend/node_modules/kue/bin
+poynts-mbp:bin ericmcconkie$ ll
+total 8
+drwxr-xr-x   3 ericmcconkie  staff  102 Dec 24 07:52 .
+drwxr-xr-x  13 ericmcconkie  staff  442 Dec 24 07:52 ..
+-rwxr-xr-x   1 ericmcconkie  staff  522 Dec 24 07:52 kue-dashboard
+poynts-mbp:bin ericmcconkie$ ./kue-dashboard - p 3050 - r redis:
+Running on http://127.0.0.1:3000
+^C
+poynts-mbp:bin ericmcconkie$ ./kue-dashboard - p 3050 - r redis:
+```
+
+## SAMPLE POST
 `POST http://localhost:3000/routes`
 
 ```

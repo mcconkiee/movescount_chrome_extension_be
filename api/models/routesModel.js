@@ -1,28 +1,37 @@
-'use strict';
-var mongoose = require('mongoose');
+"use strict";
+var mongoose = require("mongoose");
 var Schema = mongoose.Schema;
-
 
 var RouteSchema = new Schema({
   uuid: {
     type: String,
-    required: 'UUID is required'
+    required: "UUID is required"
   },
   url: {
+    type: String
+  },
+  cookie: {
     type: String,
-    required: 'URL is requierd'
+    required: "Cookie is required"
+  },
+  routeIds: {
+    type: Array
+  },
+  sendTo:{
+    type: String,
+    required: "Please provide a place to send this package"
   },
   Created_date: {
     type: Date,
     default: Date.now
-  },
-//   status: {
-//     type: [{
-//       type: String,
-//       enum: ['pending', 'ongoing', 'completed']
-//     }],
-//     default: ['pending']
-//   }
+  }
+  //   status: {
+  //     type: [{
+  //       type: String,
+  //       enum: ['pending', 'ongoing', 'completed']
+  //     }],
+  //     default: ['pending']
+  //   }
 });
 
-module.exports = mongoose.model('Routes', RouteSchema);
+module.exports = mongoose.model("Routes", RouteSchema);
