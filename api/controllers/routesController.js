@@ -1,11 +1,30 @@
-var archiver = require("archiver");
+const archiver = require("archiver");
 const async = require("async");
 const createFile = require("create-file");
-var fs = require("fs");
+var ff = require("ff");
+const fs = require("fs");
 const geolib = require("geolib");
 const http = require("http");
 const request = require("request");
+var s3 = require("s3");
 const uuidv4 = require("uuid/v4");
+
+const config = require("../config");
+const Route = require("../models/routesModel");
+
+const deleteFolderRecursive = function deleteFolderRecursive(path) {
+  if (fs.existsSync(path)) {
+    fs.readdirSync(path).forEach(function(file, index){
+      var curPath = path + "/" + file;
+      if (fs.lstatSync(curPath).isDirectory()) { // recurse
+        deleteFolderRecursive(curPath);
+      } else { // delete file
+        fs.unlinkSync(curPath);
+      }
+    });
+    fs.rmdirSync(path);
+  }
+};
 
 const download = function download(options, done) {
   console.log("download ", options);
@@ -40,22 +59,41 @@ const download = function download(options, done) {
     req.end();
   });
 };
-const removeFiles = function removeFiles(files, done) {
-  async.each(
-    files,
-    (f, _done) => {
-      fs.unlinkSync(f);
-      _done();
-    },
-    e => {
-      if (e) throw e;
-      done();
+
+const uploadS3 = function uploadS3(zipUrl, options, done) {
+  var client = s3.createClient({
+    s3Options: config.s3
+  });
+  var params = {
+    localFile: zipUrl,
+
+    s3Params: {
+      Bucket: config.s3.Bucket,
+      Key: `routes/${options.uuid}.zip`
     }
-  );
+  };
+  var uploader = client.uploadFile(params);
+  uploader.on("error", function(err) {
+    console.error("unable to upload:", err.stack);
+    done(err,null);
+  });
+  uploader.on("progress", function() {
+    console.log(
+      "progress",
+      uploader.progressMd5Amount,
+      uploader.progressAmount,
+      uploader.progressTotal
+    );
+  });
+  uploader.on("end", function() {
+    console.log("done uploading");
+    done(null, s3.getPublicUrl(params.s3Params.Bucket, params.s3Params.Key));
+  });
 };
 const doArchive = function doArchive(data, options, done) {
   // create a file to stream archive data to.
-  var output = fs.createWriteStream(options.dir + `/${options.uuid}.zip`);
+  const url = options.dir + `/${options.uuid}.zip`;
+  var output = fs.createWriteStream(url);
   var archive = archiver("zip", {
     zlib: { level: 9 } // Sets the compression level.
   });
@@ -66,18 +104,21 @@ const doArchive = function doArchive(data, options, done) {
     console.log(
       "archiver has been finalized and the output file descriptor has closed."
     );
-    removeFiles(data, done);
+    done(null, url);
   });
+
+  // good practice to catch this error explicitly
+  archive.on("error", function(err) {
+    throw err;
+  });
+
   // This event is fired when the data source is drained no matter what was the data source.
   // It is not part of this library but rather from the NodeJS Stream API.
   // @see: https://nodejs.org/api/stream.html#stream_event_end
   output.on("end", function() {
     console.log("Data has been drained");
   });
-  // good practice to catch this error explicitly
-  archive.on("error", function(err) {
-    throw err;
-  });
+
   archive.pipe(output);
   data.forEach(d => {
     const comps = d.split("/");
@@ -92,9 +133,12 @@ exports.download_all_routes = function(req, res) {
   const rootDir = process.cwd();
   const uuid = uuidv4();
   const dir = `${rootDir}/tmp/${uuid}`;
+  const options = { dir: dir, uuid: uuid };
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir);
   }
+
+  //FETCH all the gpx files, and hold them in the tmp dir
   const archivableFiles = []; //hold the paths here
   async.each(
     allIds,
@@ -102,10 +146,8 @@ exports.download_all_routes = function(req, res) {
       const url = `/Move/ExportRoute/${routeId}?format=gpx`;
       const options = { url: url, cookie: req.body.cookie, dir: dir };
       download(options).then(response => {
-        // data.push(response);
         const fileName = `${routeId}.gpx`;
         const filePath = dir + `/${fileName}`;
-
         //create files
         createFile(filePath, response, err => {
           if (err) throw err;
@@ -114,17 +156,29 @@ exports.download_all_routes = function(req, res) {
         });
       });
     },
-    err => {      
+    err => {
       if (err) throw err;
-      //zip and hold it in tmp
-      //TODO: clean up archivableFiles
-      doArchive(archivableFiles, { dir: dir, uuid: uuid }, err => {
-        console.log("all files but zip are gone");
-        res.json({ dir: dir });
+      const f = ff(
+        this,
+        () => {
+          doArchive(archivableFiles, options, f.slot());
+        },
+        zipUrl => {
+          uploadS3(zipUrl, options, f.slot());
+        },
+        s3Url => {
+          var newRoute = new Route({ url: s3Url, uuid: uuid });
+          newRoute.save(function(err, route) {
+            if (err) res.send(err);
+            deleteFolderRecursive(dir);
+            res.json(route);
+          });
+        }
+      ).onComplete(result => {
+        console.log("all done** - zip url = ", result);
       });
     }
   );
-  
 };
 
 exports.download_zip = function(req, res) {
