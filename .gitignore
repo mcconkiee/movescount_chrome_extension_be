@@ -4,7 +4,7 @@
 /geolib/node_modules
 /geolib/package-lock.json
 /node_modules
-
+/api/tmp/*
 # testing
 /coverage
 
