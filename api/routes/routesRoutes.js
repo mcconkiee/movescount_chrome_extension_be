@@ -4,5 +4,5 @@ module.exports = function(app) {
 
   // todoList Routes
   app.route('/routes').post(routesController.download_all_routes);
-  app.route('/routes/download/:id').get(routesController.download_zip);
+  app.route('/routes/:id').get(routesController.get_route);
 };
