@@ -21,6 +21,8 @@ const download = function download(options, done) {
         chunks.push(chunk);
       });
       _res.on("error", e => {
+        console.log('error for route download',e);
+        
         reject(e);
       });
 

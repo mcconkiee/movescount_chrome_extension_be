@@ -17,21 +17,32 @@ var RouteSchema = new Schema({
   routeIds: {
     type: Array
   },
-  sendTo:{
+  dates: {
+    startDate:Date,
+    endDate: Date
+  },
+  sendTo: {
     type: String,
     required: "Please provide a place to send this package"
   },
   Created_date: {
     type: Date,
     default: Date.now
+  },
+  format:{
+    type: String,
+    default: 'gpx',
+    required: "Download format is required"
+  },
+  downloadType: {
+    type: [
+      {
+        type: String,
+        enum: ["move", "route"]
+      }
+    ],    
+    default: ["route"]
   }
-  //   status: {
-  //     type: [{
-  //       type: String,
-  //       enum: ['pending', 'ongoing', 'completed']
-  //     }],
-  //     default: ['pending']
-  //   }
 });
 
 module.exports = mongoose.model("Routes", RouteSchema);

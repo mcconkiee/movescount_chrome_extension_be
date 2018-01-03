@@ -12,7 +12,8 @@ const emailForRoutes = function emailForRoutes(route, options, done) {
       route.url
     }`
   };
-
+  console.log(`MAILGUN: send emial to ${data.to}`);
+  
   mailgun.messages().send(data,done);
   
 };

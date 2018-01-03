@@ -5,17 +5,23 @@ const uuidv4 = require("uuid/v4");
 const Route = require("../models/routesModel");
 
 exports.download_all_routes = function(req, res) {
-  const allIds = req.body.data;
   const uuid = uuidv4();
+  console.log(req.body, `new route request for ${uuid}`);
+
+  //create a mongo object to save refrence to this download info
   var newRoute = new Route({
     uuid: uuid,
-    routeIds: allIds,
-    sendTo: req.body.sendTo,
-    cookie: req.body.cookie
+    routeIds: req.body.data,
+    downloadType: req.body.type,
+    cookie: req.body.cookie,
+    format: req.body.options.format,
+    sendTo: req.body.options.sendTo,    
+    dates: req.body.options.dates    
   });
   newRoute.save(function(err, route) {
     if (err) res.send(err);
-
+    console.log('route saved',err,route);
+    
     //fetching routes can take a while...spin off a job to fetch, upload to s3 and notify
     const jobName = `downloadRoute_${route.uuid}`;
     queue

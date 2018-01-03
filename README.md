@@ -1,39 +1,41 @@
+
+
 ```
 tab> cd geolib
 tab> npm install
 tab> cd ..
 tab> npm install
-tab> npm start
+```
 
+## Fire it up!
+```
+tab> npm start || PORT=8080 nodemon server.js (if you run kue ui, see below)
 tab2> sudo mongod
+```
 
-
-create zip:
-
-
-## KU - (background jobs)
-
+## Kue (for background jobs)
 [https://blog.jscrambler.com/queue-jobs-kue/](https://blog.jscrambler.com/queue-jobs-kue/)
 
+
 ```
-cd /Users/ericmcconkie/Documents/personal/apps/movescount-chrome/backend/node_modules/kue/bin 
-poynts-mbp:bin ericmcconkie$ pwd
-/Users/ericmcconkie/Documents/personal/apps/movescount-chrome/backend/node_modules/kue/bin
-poynts-mbp:bin ericmcconkie$ ll
-total 8
-drwxr-xr-x   3 ericmcconkie  staff  102 Dec 24 07:52 .
-drwxr-xr-x  13 ericmcconkie  staff  442 Dec 24 07:52 ..
--rwxr-xr-x   1 ericmcconkie  staff  522 Dec 24 07:52 kue-dashboard
-poynts-mbp:bin ericmcconkie$ ./kue-dashboard - p 3050 - r redis:
+./node_modules/kue/bin/kue-dashboard - p 3050 - r redis:
 Running on http://127.0.0.1:3000
-^C
-poynts-mbp:bin ericmcconkie$ ./kue-dashboard - p 3050 - r redis:
+
 ```
 
-## SAMPLE POST
+## SAMPLE POST (for routes)
 `POST http://localhost:3000/routes`
 
 ```
 {"data":[3034739,3034724],"type":"routes","cookie":"MovesCountRealtime=07811f68107c18695030e7102b5acd724ae8618fb6a54a13931194d22511625e1a779d792669bcbaa0eb467e4a98da2c1c84f8ecd3a85d66112241f7e7113cdc567bf6017e1677cb06d90a612098f41d139ad232ce86c33b24dadb4688320ccf; om-631239=true; Movescount_lang=9; _ga=GA1.2.405267362.1513700042; _omappvp=NYFpUelIJlrc5WShfxxhfFd8DE3czShUsBraTxfmtogcb3xT3FjWQmn18ow5T3PXdueHMA7t1WWX4DwC8FmoRp4321EjBGqs; unsupportedBrowserWarningDisplayed=true; __atuvc=11%7C51; ASP.NET_SessionId=yjtjqfvp1jxwbb5t4iw5umo1; AWSELB=6BA385EF167F548755DA9475B5E2E58BE6A3496C1B91C1C98008F15D1FE7B8AF00DCEAC116A732CA8CBCEFB7794017A4493418846D395EBA1DC25A8291094C3CED2AEC6E61; gsScrollPos-693=0; _gid=GA1.2.1562604014.1513912586; MovesCountCookie=9826ADF48C7F84B1B7263662302D75A1C4E26B4AB8E1872EFE97EB3F9F0BBC809BE755C4E6F4A222BEB2EB0579F81402ED64D8DA70EEBEE010653928A85204F9D7FD42ACB7FAB7176029F9203D6143707CB34557661D3D13EF5DFB368FE8F1B7278C84F15152D207947160AE6F17E9B9FB77B56EFE5FEE2C1A721BCD2CD06EEABDB2FE2EA8FDD2757342966EBE4949770A800BA6E6A41078B62C8C717AE7ABBA4E5513819C8B7AB7D7EDAD17CF7FA3D6A83AD6DC45E73ECD947C80713AD4EF7237E9610822E5C04406C39721CD563AFBF3EECC611C6659011CB027480A818B07EAB69B3E; _gat=1"}
 ```
+
+
+## Troubleshooting
+
+### Mongodb
+
+```
+sudo killall -15 mongod
+sudo mongod
 ```

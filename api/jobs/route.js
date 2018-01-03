@@ -32,16 +32,19 @@ module.exports = function(route, done) {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir);
   }
-
-  //FETCH all the gpx files, and hold them in the tmp dir
+  console.log(`set up tmp dir : ${dir}`);
+  
+  //FETCH all the  files, and hold them in the tmp dir
   const archivableFiles = []; //hold the paths here
   async.each(
     route.routeIds,
     (routeId, asyncDone) => {
-      const url = `/Move/ExportRoute/${routeId}?format=gpx`;
+      const urlForRoute = `/Move/ExportRoute/${routeId}?format=${route.format}`;
+      const urlForMove  = `/move/export?id=${routeId}&format=${route.format}`
+      const url = (route.downloadType === 'route') ? urlForRoute : urlForMove;
       const options = { url: url, cookie: route.cookie, dir: dir };
       lib.download(options).then(response => {
-        const fileName = `${routeId}.gpx`;
+        const fileName = `${routeId}.${route.format}`;
         const filePath = dir + `/${fileName}`;
         //create files
         createFile(filePath, response, err => {
@@ -56,12 +59,18 @@ module.exports = function(route, done) {
       const f = ff(
         this,
         () => {
+          console.log('archiving files for s3');
+          
           lib.archive(archivableFiles, options, f.slot());
         },
         zipUrl => {
+          console.log(`uploading zip ${zipUrl}`);
+          
           lib.uploadS3(zipUrl, options, f.slot());
         },
         s3Url => {
+          console.log(`upload complete, url for download ${s3Url}`);
+          
           route.url = s3Url;
           Route.findOneAndUpdate(
             { _id: route._id },
@@ -69,6 +78,8 @@ module.exports = function(route, done) {
             { new: true },
             (err, updatedRoute) => {
               if (err) return done(err, null);
+              console.log('delete tmp dir');
+              
               deleteFolderRecursive(dir);
               lib.email(updatedRoute, f.slot());              
             }
