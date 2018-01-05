@@ -40,6 +40,10 @@ exports.download_all_routes = function(req, res) {
     res.json(route);
   });
 };
+exports.upload_routes = function(req, res) {
+  res.send({})
+};
+
 exports.get_route = function(req, res) {
   Route.findById(req.params.id, function(err, route) {
     if (err) res.send(err);

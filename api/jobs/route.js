@@ -33,7 +33,6 @@ module.exports = function(route, done) {
     fs.mkdirSync(dir);
   }
   console.log(`set up tmp dir : ${dir}`);
-  
   //FETCH all the  files, and hold them in the tmp dir
   const archivableFiles = []; //hold the paths here
   async.each(
