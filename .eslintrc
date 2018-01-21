@@ -1,6 +1,7 @@
-{
+{  
   "extends": "eslint:recommended",
   "env": {
+    "es6": true,
     "browser": true,
     "node": true
   },
@@ -8,7 +9,7 @@
     "chrome": true
   },
   "parserOptions": {
-    "ecmaVersion": 6
+    "ecmaVersion": 8
   },
   "rules": {
     "no-plusplus": "off",

@@ -1,11 +1,11 @@
 
 var express = require('express'),
   app = express(),
+  fileUpload = require('express-fileupload'),
   port = process.env.PORT || 3000,
   mongoose = require('mongoose'),
   bodyParser = require('body-parser'),
-  routes = require('./api/routes');
-  
+  routes = require('./api/routes');  
 
  // print process.argv
 var argv = require('minimist')(process.argv.slice(2));
@@ -20,6 +20,7 @@ mongoose.connect('mongodb://localhost/MovesCountExporter');
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+app.use(fileUpload());
 
 routes(app); //register the route
 
